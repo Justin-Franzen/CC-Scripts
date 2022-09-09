@@ -1,7 +1,9 @@
-local x, y, z, x_dist, y_dist, x_return, y_return, z_return, direction_return, max_slots, work, torchs, debug, auto_refuel, direction
+local arg = { ... }
+local x, y, z, x_dist, y_dist, z_dist, x_return, y_return, z_return, direction_return, max_slots, work, torchs, debug, auto_refuel, direction
 
-debug = false
+debug = true
 auto_refuel = false 
+max_slots = 12
 
 
 function mine()
@@ -52,7 +54,7 @@ function move(dir)
     if turtle.down() == false then
       repeat
         turtle.attackDown()
-        turtle.mineDown()
+        turtle.digDown()
         sleep(0.3)
       until turtle.down() == true
     end
@@ -67,16 +69,6 @@ function move(dir)
       until turtle.up() == true
     end
     z = z + 1
-  end
-end
-
-function go_forward()
-  if turtle.forward() == false then
-    repeat
-      turtle.attack()
-      mine1()
-      sleep(0.3)
-    until turtle.forward() == true
   end
 end
 
@@ -96,25 +88,23 @@ function turn(dir)
   end
 end
 
-function go_back()
-  turn("right")
-  turn("right")
-  for i = 0, y_return-1 do
-    go_forward()
-  end
-  if (x_return > 0) then
-    turn("right")
+function new_layer()
+  local go_down
+  if z_dist - z > -3 then
+    go_down = z_dist - z
   else
-    turn("left")
+    go_down = -3
   end
-  for i = 0, math.abs(x_return) - 1 do
-    go_forward()
+  if debug then print("go_down: "..tostring(go_down)) end
+  while go_down < 0
+  do
+    if debug then print("y: "..y.. " x: " .. x .. " z: "  .. z .. " dir: " .. direction) end
+    move("down")
+    go_down = go_down + 1
   end
-  while direction ~= direction_return do
-    turn("left")
-  end
-  turtle.suck()
-  turtle.suckDown()
+  turn("left")
+  turn("left")
+  oddRow = not oddRow
 end
 
 function go_home()
@@ -179,80 +169,42 @@ end
 function cycle()
   if (check_fuel(x,y)) then
     if debug then print("need fuel") end
-    go_home()
-    unload(max_slots)
     fuel_me(x,y)
-    go_back()
   end
   if ( turtle.getItemCount(max_slots) > 0)  then
     if debug then print("inv full") end
-    go_home()
-    unload(max_slots)
-    if (check_fuel(x_return,y_return)) then 
-      fuel_me(x_return,y_return)
-    end
-    go_back()
   end
   if debug then print("y: "..y.. " x: " .. x .. " z: "  .. z .. " dir: " .. direction) end
   mine()
-  if (torchs and (y % 7 == 0) and (x % 7 == 0)) then
-    turtle.select(16)
-    turtle.placeDown()
-    turtle.select(1)
-  end
-  go_forward()
-  if (direction == 0) then
-    if (y == y_dist) then
-      if debug == true then print("End of col") end
-      if (x == x_dist) then
-        if(z == z_dist) then
-            if debug == true then print("done") end
-            mineUpDown()
-            go_home()
-            work = false
-        end
-        move("down")
-      else
-        if (x_dist > 0) then
-          turn("right")
-          mine()
-          go_forward()
-          turn("right")
-          x = x + 1
-        else
-          turn("left")
-          mine()
-          go_forward()
-          turn("left")
-          x = x - 1
-        end
-      end
-    end
-  elseif (direction == 2) then
-    if (y == 0) then
-      if debug == true then print("End of col") end
-      if (x == x_dist) then
+  move("forward")
+  if ((y == y_dist and direction == 0) or (y == 0 and direction == 2)) then
+    if debug == true then print("End of col") end
+    if ((x == x_dist and oddRow)or (x == 0 and not oddRow)) then
+      if debug == true then print("End of row") end
+      if(z == z_dist) then
         if debug == true then print("done") end
-        mine()
-        go_home()
-        unload(16)
+        --mineUpDown()
+        --go_home()
         work = false
       else
-        if (x_dist > 0) then
-          turn("left")
-          mine()
-          go_forward()
-          turn("left")
-          x = x + 1
-        else
-          turn("right")
-          mine()
-          go_forward()
-          turn("right")
-          x = x - 1
-        end
       end
+      mineUpDown()
+      new_layer()  
+      if debug then print("oddRow: "..tostring(oddRow)) end
+    else
+      local turn_dir
+      if ((direction == 0 and oddRow) or (direction == 2 and not oddRow)) then
+        turn_dir = "right"
+      else
+        turn_dir = "left"
+      end
+        turn(turn_dir)
+        mine()
+        move("forward")
+        if debug then print("y: "..y.. " x: " .. x .. " z: "  .. z .. " dir: " .. direction) end
+        turn(turn_dir)
     end
+ 
   end
   if debug then sleep(2.0) end
 end
@@ -263,22 +215,11 @@ print("How far you you like me to go?")
 y_dist = read()
 print("How many rows would you like me to mine?")
 x_dist = read()
-print("Would you like me to use torches? (yes/no)")
-torchs = read()
-if torchs == "yes" then
-  print("Place torhes in slot 16")
-  repeat
-    sleep(1)
-  until turtle.getItemCount(16) > 0
-  torchs = true
-  max_slots = 15
-else
-  torchs = false
-  max_slots = 16
-end
-
+print("How far down?")
+z_dist = read()
 y_dist = y_dist - 1
 x_dist = tonumber(x_dist)
+z_dist = (z_dist-1) * -1
 if x_dist > 0 then
   x_dist = x_dist - 1
 else
@@ -288,6 +229,7 @@ x=0
 y=0
 z=0
 direction = 0
+oddRow = true
 work = true
 
 if debug == true then
@@ -295,11 +237,6 @@ if debug == true then
   print("I'm mining " .. y_dist .. " blocks deep!")
   print("I'm mining " .. x_dist .. " Row(s) over!")
   print("Fuel level: " .. turtle.getFuelLevel())
-  if torchs == true then
-    print("I will use torches!")
-  else
-    print("I will not use torches!")
-  end
 end
 
 -- Start Program
