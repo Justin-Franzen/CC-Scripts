@@ -26,8 +26,25 @@ function unload(slot)
   print("Unloading items...")
   for n = 1, slot do
     turtle.select(n)
-    turtle.drop()
+    if  turtle.getItemCount()> 0 then
+      repeat
+      until turtle.dropUp()
+    end    
   end
+  turtle.select(1)
+end
+
+function place_chest()
+  turtle.select(16)
+  repeat
+    turtle.attackUp()
+    turtle.digUp()
+  until turtle.placeUp()
+end
+
+function break_chest()
+  turtle.select(16)
+  turtle.digUp()
   turtle.select(1)
 end
 
@@ -138,23 +155,20 @@ function go_home()
   end
 end
 
-function fuel_me(x_local, y_local)
-  print ("Waiting for fuel . . .")
-  turtle.select(1)
-  repeat
-    turtle.refuel(64)
-    sleep(1)
-  until turtle.getFuelLevel() > (y_local * 2) + (math.abs(x_local) * 2) + 10
+function fuel_me()
+  if debug then print(turtle.getFuelLevel()) end
+  turtle.suckUp(2)
+  turtle.refuel(64)
+  if debug then print(turtle.getFuelLevel()) end
 end
 
-function check_fuel(x_local, y_local)
-  if turtle.getFuelLevel() < (y_local * 2) + (math.abs(x_local) * 2) + 10 then
+function check_fuel()
+  if turtle.getFuelLevel() < 200 then
     print("Out of fuel!")
-    refueld = false
     if auto_refuel == true then     
       for f = 1, max_slots do
         turtle.select(f)
-        if turtle.refuel(2) then
+        if turtle.refuel(8) then
           turtle.select(1)
           return false
         end
@@ -167,12 +181,17 @@ function check_fuel(x_local, y_local)
 end
 
 function cycle()
-  if (check_fuel(x,y)) then
+  if (check_fuel()) then
     if debug then print("need fuel") end
-    fuel_me(x,y)
-  end
-  if ( turtle.getItemCount(max_slots) > 0)  then
+    place_chest()
+    unload(max_slots)
+    fuel_me()
+    break_chest()
+  elseif ( turtle.getItemCount(max_slots) > 0)  then
     if debug then print("inv full") end
+    place_chest()
+    unload(max_slots)
+    break_chest()
   end
   if debug then print("y: "..y.. " x: " .. x .. " z: "  .. z .. " dir: " .. direction) end
   mine()
@@ -231,7 +250,7 @@ z=0
 direction = 0
 oddRow = true
 work = true
-
+turtle.select(1)
 if debug == true then
   print("")
   print("I'm mining " .. y_dist .. " blocks deep!")
