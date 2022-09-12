@@ -1,7 +1,7 @@
 local arg = { ... }
 local x, y, z, x_dist, y_dist, z_dist, x_return, y_return, z_return, direction_return, max_slots, work, torchs, debug, auto_refuel, direction
 
-debug = true
+debug = false
 auto_refuel = false 
 max_slots = 12
 
@@ -129,29 +129,21 @@ function go_home()
   y_return = y
   z_return = z
   direction_return = direction
-  if (x > 0) then
-    if (direction == 0) then
-      turn("left")
-    else
-      turn("right")
-    end
-  else
-    if (direction == 0) then
-      turn("right")
-    else
-      turn("left")
-    end
+  while direction ~= 3 do
+    turn("left")
   end
   for i = 0, math.abs(x)-1 do
-    go_forward()
+    move("forward")
   end
-  if (direction == 3) then
+
+  while direction ~= 2 do
     turn("left")
-  elseif (direction == 1) then
-    turn("right")
   end
-  for i = 0, y-1 do
-    go_forward()
+  for i = 0, math.abs(y)-1 do
+    move("forward")
+  end
+  for i = 0, math.abs(z)-1 do
+    move("up")
   end
 end
 
@@ -202,14 +194,17 @@ function cycle()
       if debug == true then print("End of row") end
       if(z == z_dist) then
         if debug == true then print("done") end
-        --mineUpDown()
-        --go_home()
+        mineUpDown()
+        place_chest()
+        unload(max_slots)
+        break_chest()
+        go_home()
         work = false
       else
+        mineUpDown()
+        new_layer()  
+        if debug then print("oddRow: "..tostring(oddRow)) end
       end
-      mineUpDown()
-      new_layer()  
-      if debug then print("oddRow: "..tostring(oddRow)) end
     else
       local turn_dir
       if ((direction == 0 and oddRow) or (direction == 2 and not oddRow)) then
@@ -230,15 +225,10 @@ end
 
 --Get info
 shell.run("clear")
-print("How far you you like me to go?")
-y_dist = read()
-print("How many rows would you like me to mine?")
-x_dist = read()
-print("How far down?")
-z_dist = read()
-y_dist = y_dist - 1
-x_dist = tonumber(x_dist)
-z_dist = (z_dist-1) * -1
+
+y_dist = arg[1] - 1
+x_dist = tonumber(arg[2])
+z_dist = (arg[3]-1) * -1
 if x_dist > 0 then
   x_dist = x_dist - 1
 else
