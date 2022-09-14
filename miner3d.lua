@@ -149,7 +149,7 @@ end
 
 function fuel_me()
   if debug then print(turtle.getFuelLevel()) end
-  turtle.suckUp(2)
+  turtle.suckUp(8)
   turtle.refuel(64)
   if debug then print(turtle.getFuelLevel()) end
 end
