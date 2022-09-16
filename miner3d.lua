@@ -176,13 +176,13 @@ function cycle()
   if (check_fuel()) then
     if debug then print("need fuel") end
     place_chest()
-    unload(max_slots)
+    unload(max_slots+2)
     fuel_me()
     break_chest()
   elseif ( turtle.getItemCount(max_slots) > 0)  then
     if debug then print("inv full") end
     place_chest()
-    unload(max_slots)
+    unload(max_slots+2)
     break_chest()
   end
   if debug then print("y: "..y.. " x: " .. x .. " z: "  .. z .. " dir: " .. direction) end
@@ -196,7 +196,7 @@ function cycle()
         if debug == true then print("done") end
         mineUpDown()
         place_chest()
-        unload(max_slots)
+        unload(max_slots+2)
         break_chest()
         go_home()
         work = false
