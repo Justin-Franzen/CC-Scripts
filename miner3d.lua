@@ -1,5 +1,9 @@
+-- Usage mine3d (how far) (how many rows to the left) (how deep)
+-- supply enderchest in slot 16
+-- Enderchest should resupply(regulate) fuel in slot 1
+
 local arg = { ... }
-local x, y, z, x_dist, y_dist, z_dist, x_return, y_return, z_return, direction_return, max_slots, work, torchs, debug, auto_refuel, direction
+local x, y, z, x_dist, y_dist, z_dist,  max_slots, work, debug, auto_refuel, direction
 
 debug = false
 auto_refuel = false 
@@ -223,7 +227,7 @@ function cycle()
   if debug then sleep(2.0) end
 end
 
---Get info
+
 shell.run("clear")
 
 y_dist = arg[1] - 1
