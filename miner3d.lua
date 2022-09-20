@@ -129,10 +129,6 @@ function new_layer()
 end
 
 function go_home()
-  x_return = x
-  y_return = y
-  z_return = z
-  direction_return = direction
   while direction ~= 3 do
     turn("left")
   end
